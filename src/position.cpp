@@ -655,22 +655,8 @@ bool Position::see_ge(Move m, Value threshold) const {
       // Unpin pieces
       if ((bb = pinners[~stm] & ~occupied)) {
           Square s = pop_lsb(bb);
-          PieceType pt = type_of(piece_on(s));
-          bool canUnpin = true;
-
           pinners[~stm] ^= s;
-          // No more rook or king behind.
-          if (pt == ROOK)
-            canUnpin = !(behind_bb(ksq[stm], s) & pinners[~stm] & pieces(~stm, ROOK, KING));
-          // No more cannon behind.
-          else if (pt == CANNON) {
-            bb = attacks_bb<CANNON>(ksq[stm], behind_bb(ksq[stm], s) & pieces()) & pieces(~stm, CANNON);
-            canUnpin = !bb;
-            pinners[~stm] |= bb;
-          }
-
-          if (canUnpin)
-            pinned[stm] &= ~between_bb(ksq[stm], s);
+          pinned[stm] &= ~between_bb(ksq[stm], s);
       }
 
       // If stm has no more attackers then give up: stm loses
