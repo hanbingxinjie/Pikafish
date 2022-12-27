@@ -67,6 +67,7 @@ extern uint8_t SquareDistance[SQUARE_NB][SQUARE_NB];
 
 extern Bitboard SquareBB[SQUARE_NB];
 extern Bitboard BetweenBB[SQUARE_NB][SQUARE_NB];
+extern Bitboard BehindBB[SQUARE_NB][SQUARE_NB];
 extern Bitboard LineBB[SQUARE_NB][SQUARE_NB];
 extern Bitboard PseudoAttacks[PIECE_TYPE_NB][SQUARE_NB];
 extern Bitboard PawnAttacks[COLOR_NB][SQUARE_NB];
@@ -220,6 +221,19 @@ inline Bitboard between_bb(Square s1, Square s2) {
   assert(is_ok(s1) && is_ok(s2));
 
   return BetweenBB[s1][s2];
+}
+
+
+/// behind_bb(s1, s2) returns a bitboard representing s2 and the squares behind s2 when
+/// standing on square s1 facing at s2. If the given squares are not on a same file/rank,
+/// it returns s2. For instance, behind_bb(SQ_C4, SQ_F4) will return a bitboard with
+/// squares C4, G4, H4 and I4, but behind_bb(SQ_E6, SQ_F8) will return F8.
+
+inline Bitboard behind_bb(Square s1, Square s2) {
+
+  assert(is_ok(s1) && is_ok(s2));
+
+  return BehindBB[s1][s2];
 }
 
 

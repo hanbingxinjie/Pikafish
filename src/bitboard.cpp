@@ -33,6 +33,7 @@ uint8_t SquareDistance[SQUARE_NB][SQUARE_NB];
 Bitboard SquareBB[SQUARE_NB];
 Bitboard LineBB[SQUARE_NB][SQUARE_NB];
 Bitboard BetweenBB[SQUARE_NB][SQUARE_NB];
+Bitboard BehindBB[SQUARE_NB][SQUARE_NB];
 Bitboard PseudoAttacks[PIECE_TYPE_NB][SQUARE_NB];
 Bitboard PawnAttacks[COLOR_NB][SQUARE_NB];
 Bitboard PawnAttacksTo[COLOR_NB][SQUARE_NB];
@@ -149,6 +150,8 @@ void Bitboards::init() {
               BetweenBB[s1][s2] |= lame_leaper_path<KNIGHT_TO>(Direction(s2 - s1), s1);
 
           BetweenBB[s1][s2] |= s2;
+
+          BehindBB[s1][s2] = attacks_bb<CANNON>(s1, square_bb(s2)) | s2;
       }
   }
 }

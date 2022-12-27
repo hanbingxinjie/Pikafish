@@ -631,13 +631,16 @@ bool Position::see_ge(Move m, Value threshold) const {
   assert(color_of(piece_on(from)) == sideToMove);
   Bitboard occupied = pieces() ^ from ^ to;
   Color stm = sideToMove;
+  Square ksq[COLOR_NB] = { lsb(pieces(WHITE, KING)), lsb(pieces(BLACK, KING)) };
   Bitboard attackers = attackers_to(to, occupied);
+  Bitboard pinners[COLOR_NB] = { st->pinners[WHITE], st->pinners[BLACK] };
+  Bitboard pinned[COLOR_NB] = { blockers_for_king(WHITE), blockers_for_king(BLACK) };
 
   // Flying general
-  if (attackers & pieces(stm, KING))
-      attackers |= attacks_bb<ROOK>(to, occupied & ~pieces(ROOK)) & pieces(~stm, KING);
-  if (attackers & pieces(~stm, KING))
-      attackers |= attacks_bb<ROOK>(to, occupied & ~pieces(ROOK)) & pieces(stm, KING);
+  if (attackers & ksq[WHITE])
+      attackers |= attacks_bb<ROOK>(to, occupied & ~pieces(ROOK)) & ksq[BLACK];
+  if (attackers & ksq[BLACK])
+      attackers |= attacks_bb<ROOK>(to, occupied & ~pieces(ROOK)) & ksq[WHITE];
 
   Bitboard nonCannons = attackers & ~pieces(CANNON);
   Bitboard cannons = attackers & pieces(CANNON);
@@ -649,19 +652,32 @@ bool Position::see_ge(Move m, Value threshold) const {
       stm = ~stm;
       attackers &= occupied;
 
-      // If stm has no more attackers then give up: stm loses
-      if (!(stmAttackers = attackers & pieces(stm)))
-          break;
+      // Unpin pieces
+      if ((bb = pinners[~stm] & ~occupied)) {
+          Square s = pop_lsb(bb);
+          PieceType pt = type_of(piece_on(s));
+          bool canUnpin = true;
 
+          pinners[~stm] ^= s;
+          // No more rook or king behind.
+          if (pt == ROOK)
+            canUnpin = !(behind_bb(ksq[stm], s) & pinners[~stm] & pieces(~stm, ROOK, KING));
+          // No more cannon behind.
+          else if (pt == CANNON) {
+            bb = attacks_bb<CANNON>(ksq[stm], behind_bb(ksq[stm], s) & pieces()) & pieces(~stm, CANNON);
+            canUnpin = !bb;
+            pinners[~stm] |= bb;
+          }
+
+          if (canUnpin)
+            pinned[stm] &= ~between_bb(ksq[stm], s);
+      }
+
+      // If stm has no more attackers then give up: stm loses
       // Don't allow pinned pieces to attack as long as there are
       // pinners on their original square.
-      if (pinners(~stm) & occupied)
-      {
-          stmAttackers &= ~blockers_for_king(stm);
-
-          if (!stmAttackers)
-              break;
-      }
+      if (!(stmAttackers = attackers & pieces(stm) & ~pinned[stm]))
+          break;
 
       res ^= 1;
 
