@@ -80,8 +80,10 @@ Move to_move(const Position& pos, std::string& str);
 } // namespace UCI
 
 extern UCI::OptionsMap Options;
-extern bool UseRule60;
-extern bool Strict3Fold;
+extern bool EnableRule60;
+extern bool StrictThreeFold;
+extern uint8_t MateThreatDepth;
+extern bool ChineseRule;
 
 } // namespace Stockfish
 
